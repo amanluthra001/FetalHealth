@@ -11,7 +11,41 @@ PregnaCare consists of three services plus a database:
 
 ---
 
-## Fast Railway Setup (Combined Node API + Python ML in 1 Service)
+## 100% Free Plan Deployment (No Credit Card Required)
+
+Because Railway's free trial expires and PyTorch + Attention U-Net needs >1 GB RAM (more than Render's 512 MB free tier), the best **100% free** stack is:
+
+- **Database:** **MongoDB Atlas** (Free M0, 512 MB, no card) → https://cloud.mongodb.com
+- **Backend + ML (Combined):** **Hugging Face Spaces** (Free Docker Space with **16 GB RAM**, no card) → https://huggingface.co/new-space
+- **Frontend:** **Vercel** (Free Hobby tier, no card) → https://vercel.com/new
+
+### Free Step A: Create MongoDB Atlas Database
+1. Go to https://cloud.mongodb.com → create a free **M0** cluster.
+2. Add a DB user + password, and under **Network Access** allow `0.0.0.0/0`.
+3. Copy your `MONGO_URI` connection string.
+
+### Free Step B: Deploy Backend + ML on Hugging Face Spaces (16 GB RAM Free)
+1. Go to https://huggingface.co/new-space.
+2. Choose **Docker** (Blank) as the Space SDK, **CPU basic · 2 vCPU · 16 GB (Free)**, and **Public**.
+3. Upload these files from `src/pregnancy-monitor-backend/` into the Space (via Web UI or `git push`):
+   - `Dockerfile` (runs both Node API on port `7860` and Python ML on `127.0.0.1:8000`)
+   - `package.json`, `package-lock.json`, `server.js`
+   - `requirements.txt`, `main.py`, `risk_model.pkl`, `best_attention_unet_resnet34.pth`
+4. In Space **Settings → Variables and secrets**, add a **Secret**:
+   - `MONGO_URI` = your MongoDB Atlas connection string
+5. Once built, your live backend API URL is:
+   `https://<your-hf-username>-<your-space-name>.hf.space`
+   (Test `https://<your-hf-username>-<your-space-name>.hf.space/api/health`.)
+
+### Free Step C: Deploy Frontend on Vercel
+1. Go to https://vercel.com/new → import `amanluthra001/FetalHealth`.
+2. Add Environment Variable:
+   - `REACT_APP_API_URL` = `https://<your-hf-username>-<your-space-name>.hf.space`
+3. Click **Deploy**.
+
+---
+
+## Fast Railway Setup (Paid / Active Trial Only)
 
 If you want the fastest deployment on Railway, `src/pregnancy-monitor-backend/Dockerfile` runs **both** the Express API (`node server.js` on `$PORT`) and FastAPI ML (`uvicorn main:app` on `127.0.0.1:8000`) inside a single service:
 

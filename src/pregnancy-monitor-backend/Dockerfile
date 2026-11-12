@@ -27,7 +27,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --from=node-deps /app/node_modules ./node_modules
 COPY package.json server.js main.py risk_model.pkl best_attention_unet_resnet34.pth ./
 
-ENV PORT=5000
-EXPOSE 5000
+# Ensure uploads directory is writable even under non-root runtimes (e.g. Hugging Face Spaces)
+RUN mkdir -p /app/uploads && chmod -R 777 /app/uploads
+
+ENV PORT=7860
+EXPOSE 7860
 
 CMD ["sh", "-c", "uvicorn main:app --host 127.0.0.1 --port 8000 & exec node server.js"]
