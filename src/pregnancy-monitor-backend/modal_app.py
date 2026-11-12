@@ -5,9 +5,11 @@ app = modal.App("pregnacare-ml")
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# Define the container image:
+# Instead of uploading the 98MB .pth model from Windows, download it directly inside the cloud container
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .apt_install("libglib2.0-0", "libgomp1")
+    .apt_install("libglib2.0-0", "libgomp1", "curl")
     .pip_install(
         "torch>=2.4.0",
         "torchvision>=0.19.0",
@@ -24,11 +26,12 @@ image = (
         "opencv-python-headless>=4.10.0",
         "segmentation-models-pytorch>=0.3.4",
     )
-    .add_local_file(BASE_DIR / "main.py", "/root/main.py")
-    .add_local_file(BASE_DIR / "risk_model.pkl", "/root/risk_model.pkl")
-    .add_local_file(
-        BASE_DIR / "best_attention_unet_resnet34.pth",
-        "/root/best_attention_unet_resnet34.pth",
+    # Download the weights and source directly from your GitHub repository during cloud image build
+    .run_commands(
+        "mkdir -p /root && "
+        "curl -fsSL https://raw.githubusercontent.com/amanluthra001/FetalHealth/main/src/pregnancy-monitor-backend/main.py -o /root/main.py && "
+        "curl -fsSL https://raw.githubusercontent.com/amanluthra001/FetalHealth/main/src/pregnancy-monitor-backend/risk_model.pkl -o /root/risk_model.pkl && "
+        "curl -fsSL https://raw.githubusercontent.com/amanluthra001/FetalHealth/raw/main/src/pregnancy-monitor-backend/best_attention_unet_resnet34.pth -o /root/best_attention_unet_resnet34.pth"
     )
 )
 
