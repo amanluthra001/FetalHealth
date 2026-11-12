@@ -1,4 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form
+from pathlib import Path
+import os
 import uvicorn
 import joblib
 import pandas as pd
@@ -10,12 +12,13 @@ import segmentation_models_pytorch as smp
 from io import BytesIO
 
 app = FastAPI()
+BASE_DIR = Path(__file__).resolve().parent
 
 # ---------------------------------------------------------
 # 1. LOAD MODELS
 # ---------------------------------------------------------
 try:
-    rf_model = joblib.load('risk_model.pkl')
+    rf_model = joblib.load(BASE_DIR / 'risk_model.pkl')
     print("✅ Random Forest Model Loaded")
 except FileNotFoundError:
     rf_model = None
@@ -33,7 +36,7 @@ try:
     
     # 2. Grab the weights from your saved ATTENTION file
     # 🌟 FIXED: Pointing to your new attention file
-    state_dict = torch.load('best_attention_unet_resnet34.pth', map_location=torch.device('cpu'))
+    state_dict = torch.load(BASE_DIR / 'best_attention_unet_resnet34.pth', map_location=torch.device('cpu'))
     
     # 3. Put the weights inside the house
     unet_model.load_state_dict(state_dict)
@@ -142,5 +145,15 @@ async def analyze_risk(
         "maternal_risk": float(risk_score_b)
     }
 
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "rf_loaded": rf_model is not None,
+        "unet_loaded": unet_model is not None,
+    }
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

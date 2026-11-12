@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload as UploadIcon, FileText, Image, CheckCircle, ShieldCheck, Loader2, AlertCircle, Activity } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 const Upload = () => {
   const [activeTab, setActiveTab] = useState('ultrasound');
@@ -31,7 +32,7 @@ const Upload = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });

@@ -2,8 +2,19 @@
 
 # dependencies
 /node_modules
+**/node_modules
 /.pnp
 .pnp.js
+
+# python
+**/__pycache__/
+*.pyc
+.venv/
+
+# backend runtime
+src/pregnancy-monitor-backend/uploads/
+.env
+**/.env
 
 # testing
 /coverage

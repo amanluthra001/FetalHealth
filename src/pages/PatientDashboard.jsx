@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, FileText, Calendar, AlertCircle, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 const PatientDashboard = () => {
   const [records, setRecords] = useState([]);
@@ -8,7 +9,7 @@ const PatientDashboard = () => {
   useEffect(() => {
     const fetchRecords = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/records');
+        const response = await fetch(`${API_BASE_URL}/api/records`);
         const data = await response.json();
         setRecords(data);
         setLoading(false);

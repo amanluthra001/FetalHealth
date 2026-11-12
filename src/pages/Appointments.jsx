@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, MapPin, Video, Plus, User, X, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -20,7 +21,7 @@ const Appointments = () => {
   // Fetch appointments on load
   const fetchAppointments = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/appointments');
+      const response = await fetch(`${API_BASE_URL}/api/appointments`);
       const data = await response.json();
       setAppointments(data);
       setLoading(false);
@@ -40,7 +41,7 @@ const Appointments = () => {
     setIsBooking(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch(`${API_BASE_URL}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

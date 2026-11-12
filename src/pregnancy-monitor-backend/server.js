@@ -11,17 +11,26 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+const ML_API_URL = (process.env.ML_API_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
-app.use(cors());
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : null;
+
+app.use(cors(allowedOrigins ? { origin: allowedOrigins } : undefined));
 app.use(express.json());
 
 // -----------------------------------------
 // MONGODB CONNECTION
 // -----------------------------------------
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('🟢 Connected to MongoDB Database!'))
-  .catch((err) => console.error('🔴 MongoDB Connection Error:', err));
+if (!process.env.MONGO_URI) {
+  console.error('🔴 MONGO_URI is not set in environment variables.');
+} else {
+  mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('🟢 Connected to MongoDB Database!'))
+    .catch((err) => console.error('🔴 MongoDB Connection Error:', err));
+}
 
 // -----------------------------------------
 // DATABASE SCHEMA (The Blueprint)
@@ -61,7 +70,7 @@ const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
+    destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, 'PT-' + uniqueSuffix + path.extname(file.originalname));
@@ -120,8 +129,9 @@ app.post('/api/upload', upload.single('medicalFile'), async (req, res) => {
                 formData.append('ultrasound', fs.createReadStream(req.file.path));
             }
 
-            const pythonResponse = await axios.post('http://127.0.0.1:8000/analyze-risk', formData, {
-                headers: formData.getHeaders()
+            const pythonResponse = await axios.post(`${ML_API_URL}/analyze-risk`, formData, {
+                headers: formData.getHeaders(),
+                timeout: 60000
             });
 
             newRecord.mlProcessed = true;
